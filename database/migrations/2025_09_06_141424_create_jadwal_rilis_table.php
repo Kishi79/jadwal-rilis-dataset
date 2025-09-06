@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('jadwal_rilis', function (Blueprint $table) {
             $table->id();
-            $table->string('dataset_id')->comment('ID dataset dari API');
+            $table->string('dataset_id')->comment('ID dataset dari API')->nullable();
             $table->string('dataset_judul');
             $table->string('opd_id')->comment('ID OPD dari API');
             $table->string('opd_nama');
@@ -25,10 +25,10 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
             $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
-            
+
             $table->index(['dataset_id', 'opd_id']);
             $table->index('jadwal_rilis');
             $table->index('status');

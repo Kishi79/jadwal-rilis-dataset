@@ -19,40 +19,33 @@ class AdminJadwalController extends Controller
         $this->apiService = $apiService;
     }
 
-    /**
-     * Display admin dashboard with jadwal list
-     */
     public function index()
     {
         $jadwalRilis = JadwalRilis::latest()->paginate(10);
-        
-        // Update status otomatis untuk setiap jadwal
         foreach ($jadwalRilis as $jadwal) {
             $jadwal->updateStatusOtomatis();
         }
-        
         return view('admin.jadwal.index', compact('jadwalRilis'));
     }
 
-    /**
-     * Show form for creating new jadwal
-     */
     public function create()
     {
-        $datasets = $this->apiService->getDatasets();
         $opds = $this->apiService->getOpds();
         $sektoralList = $this->apiService->getSektoralList();
-        
-        return view('admin.jadwal.create', compact('datasets', 'opds', 'sektoralList'));
+
+        $existingDatasetTitles = JadwalRilis::select('dataset_judul')
+            ->distinct()
+            ->orderBy('dataset_judul', 'asc')
+            ->pluck('dataset_judul');
+
+        // PERBAIKAN: Tambahkan 'existingDatasetTitles' ke compact()
+        return view('admin.jadwal.create', compact('opds', 'sektoralList', 'existingDatasetTitles'));
     }
 
-    /**
-     * Store new jadwal rilis
-     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'dataset_id' => 'required|string',
+        $request->validate([
+            'dataset_judul' => 'required|string|max:255',
             'opd_id' => 'required|string',
             'sektoral' => 'nullable|string',
             'periode_waktu' => 'required|string|max:255',
@@ -60,28 +53,20 @@ class AdminJadwalController extends Controller
             'status' => 'required|in:Belum Rilis,Sudah Rilis,Terlambat',
             'catatan' => 'nullable|string'
         ], [
-            'dataset_id.required' => 'Dataset harus dipilih',
+            'dataset_judul.required' => 'Judul Dataset harus diisi',
             'opd_id.required' => 'OPD harus dipilih',
-            'periode_waktu.required' => 'Periode waktu harus diisi',
-            'jadwal_rilis.required' => 'Jadwal rilis harus diisi',
-            'jadwal_rilis.after_or_equal' => 'Jadwal rilis tidak boleh kurang dari hari ini',
-            'status.required' => 'Status harus dipilih'
         ]);
 
         try {
             DB::beginTransaction();
-
-            // Get dataset and OPD details from selected IDs
-            $datasetInfo = $this->getDatasetInfo($request->dataset_id);
             $opdInfo = $this->getOpdInfo($request->opd_id);
-
-            if (!$datasetInfo || !$opdInfo) {
-                throw new \Exception('Dataset atau OPD tidak ditemukan');
+            if (!$opdInfo) {
+                throw new \Exception('OPD tidak ditemukan');
             }
 
-            $jadwalRilis = JadwalRilis::create([
-                'dataset_id' => $request->dataset_id,
-                'dataset_judul' => $datasetInfo['judul'],
+            JadwalRilis::create([
+                'dataset_id' => null, // Dibuat null
+                'dataset_judul' => $request->dataset_judul, // Diambil dari input
                 'opd_id' => $request->opd_id,
                 'opd_nama' => $opdInfo['nama'],
                 'sektoral' => $request->sektoral,
@@ -94,38 +79,33 @@ class AdminJadwalController extends Controller
             ]);
 
             DB::commit();
-
-            return redirect()->route('admin.jadwal.index')
-                ->with('success', 'Jadwal rilis berhasil ditambahkan');
-
+            return redirect()->route('admin.jadwal.index')->with('success', 'Jadwal rilis berhasil ditambahkan');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error creating jadwal rilis: ' . $e->getMessage());
-            
-            return back()->withInput()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Show form for editing jadwal
-     */
     public function edit(JadwalRilis $jadwal)
     {
-        $datasets = $this->apiService->getDatasets();
+        // --- PENYESUAIAN UNTUK FUNGSI EDIT ---
         $opds = $this->apiService->getOpds();
         $sektoralList = $this->apiService->getSektoralList();
+
+        $existingDatasetTitles = JadwalRilis::select('dataset_judul')
+            ->distinct()
+            ->orderBy('dataset_judul', 'asc')
+            ->pluck('dataset_judul');
         
-        return view('admin.jadwal.edit', compact('jadwal', 'datasets', 'opds', 'sektoralList'));
+        return view('admin.jadwal.edit', compact('jadwal', 'opds', 'sektoralList', 'existingDatasetTitles'));
     }
 
-    /**
-     * Update jadwal rilis
-     */
     public function update(Request $request, JadwalRilis $jadwal)
     {
-        $validated = $request->validate([
-            'dataset_id' => 'required|string',
+        // --- PENYESUAIAN UNTUK FUNGSI UPDATE ---
+        $request->validate([
+            'dataset_judul' => 'required|string|max:255', // Diubah
             'opd_id' => 'required|string',
             'sektoral' => 'nullable|string',
             'periode_waktu' => 'required|string|max:255',
@@ -133,27 +113,20 @@ class AdminJadwalController extends Controller
             'status' => 'required|in:Belum Rilis,Sudah Rilis,Terlambat',
             'catatan' => 'nullable|string'
         ], [
-            'dataset_id.required' => 'Dataset harus dipilih',
+            'dataset_judul.required' => 'Judul Dataset harus diisi', // Diubah
             'opd_id.required' => 'OPD harus dipilih',
-            'periode_waktu.required' => 'Periode waktu harus diisi',
-            'jadwal_rilis.required' => 'Jadwal rilis harus diisi',
-            'status.required' => 'Status harus dipilih'
         ]);
 
         try {
             DB::beginTransaction();
-
-            // Get dataset and OPD details if changed
-            $datasetInfo = $this->getDatasetInfo($request->dataset_id);
             $opdInfo = $this->getOpdInfo($request->opd_id);
-
-            if (!$datasetInfo || !$opdInfo) {
-                throw new \Exception('Dataset atau OPD tidak ditemukan');
+            if (!$opdInfo) {
+                throw new \Exception('OPD tidak ditemukan');
             }
 
             $jadwal->update([
-                'dataset_id' => $request->dataset_id,
-                'dataset_judul' => $datasetInfo['judul'],
+                'dataset_id' => null, // Diubah
+                'dataset_judul' => $request->dataset_judul, // Diubah
                 'opd_id' => $request->opd_id,
                 'opd_nama' => $opdInfo['nama'],
                 'sektoral' => $request->sektoral,
@@ -165,63 +138,28 @@ class AdminJadwalController extends Controller
             ]);
 
             DB::commit();
-
-            return redirect()->route('admin.jadwal.index')
-                ->with('success', 'Jadwal rilis berhasil diperbarui');
-
+            return redirect()->route('admin.jadwal.index')->with('success', 'Jadwal rilis berhasil diperbarui');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating jadwal rilis: ' . $e->getMessage());
-            
-            return back()->withInput()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Delete jadwal rilis
-     */
     public function destroy(JadwalRilis $jadwal)
     {
         try {
             $jadwal->delete();
-            
-            return redirect()->route('admin.jadwal.index')
-                ->with('success', 'Jadwal rilis berhasil dihapus');
-                
+            return redirect()->route('admin.jadwal.index')->with('success', 'Jadwal rilis berhasil dihapus');
         } catch (\Exception $e) {
             Log::error('Error deleting jadwal rilis: ' . $e->getMessage());
-            
             return back()->with('error', 'Terjadi kesalahan saat menghapus jadwal');
         }
     }
 
-    /**
-     * Get dataset info from API or extract from datasets array
-     */
-    private function getDatasetInfo($datasetId)
-    {
-        $datasets = $this->apiService->getDatasets();
-        
-        foreach ($datasets as $dataset) {
-            if (isset($dataset['id']) && $dataset['id'] == $datasetId) {
-                return [
-                    'id' => $dataset['id'],
-                    'judul' => $dataset['title'] ?? $dataset['judul'] ?? 'Unknown Dataset'
-                ];
-            }
-        }
-        
-        return null;
-    }
-
-    /**
-     * Get OPD info from API or extract from OPDs array
-     */
     private function getOpdInfo($opdId)
     {
         $opds = $this->apiService->getOpds();
-        
         foreach ($opds as $opd) {
             if (isset($opd['id']) && $opd['id'] == $opdId) {
                 return [
@@ -230,36 +168,8 @@ class AdminJadwalController extends Controller
                 ];
             }
         }
-        
         return null;
     }
 
-    /**
-     * Get dataset details via AJAX
-     */
-    public function getDatasetDetails(Request $request)
-    {
-        $datasetId = $request->dataset_id;
-        
-        if (!$datasetId) {
-            return response()->json(['error' => 'Dataset ID required'], 400);
-        }
-
-        $datasets = $this->apiService->getDatasets();
-        
-        foreach ($datasets as $dataset) {
-            if (isset($dataset['id']) && $dataset['id'] == $datasetId) {
-                // Extract OPD info from dataset if available
-                $opdId = $dataset['organization']['id'] ?? $dataset['opd_id'] ?? null;
-                $sektoral = $dataset['groups'][0]['title'] ?? $dataset['sektoral'] ?? null;
-                
-                return response()->json([
-                    'opd_id' => $opdId,
-                    'sektoral' => $sektoral
-                ]);
-            }
-        }
-        
-        return response()->json(['error' => 'Dataset not found'], 404);
-    }
+    // Fungsi getDatasetInfo dan getDatasetDetails sudah tidak terlalu relevan dan bisa dihapus jika mau
 }
