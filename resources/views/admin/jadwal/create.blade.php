@@ -32,44 +32,47 @@
                                 Judul Dataset <span class="text-red-500">*</span>
                             </label>
                             <input type="text"
-                                   name="dataset_judul"
-                                   id="dataset_judul"
-                                   list="dataset-list"
-                                   value="{{ old('dataset_judul') }}"
-                                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('dataset_judul') border-red-500 @enderror"
-                                   placeholder="Ketik untuk mencari atau masukkan judul baru"
-                                   required>
+                                name="dataset_judul"
+                                id="dataset_judul"
+                                list="dataset-list"
+                                value="{{ old('dataset_judul') }}"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('dataset_judul') border-red-500 @enderror"
+                                placeholder="Ketik untuk mencari atau masukkan judul baru"
+                                required>
 
                             <datalist id="dataset-list">
                                 @foreach($existingDatasetTitles as $title)
-                                    <option value="{{ $title }}">
-                                @endforeach
+                                <option value="{{ $title }}">
+                                    @endforeach
                             </datalist>
 
                             @error('dataset_judul')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                             <p class="mt-1 text-xs text-gray-500">Pilih dari daftar yang ada atau masukkan judul baru jika belum tersedia.</p>
                         </div>
 
                         <div>
-                            <label for="opd_id" class="block text-sm font-medium text-gray-700 mb-2">
-                                OPD <span class="text-red-500">*</span>
-                            </label>
-                            <select name="opd_id" id="opd_id"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('opd_id') border-red-500 @enderror"
-                                    required>
+                            <label for="opd_id" class="block text-sm font-medium text-gray-700 mb-2">OPD <span class="text-red-500">*</span></label>
+
+                            @if(auth()->user()->isAdmin())
+                            {{-- Jika Admin, tampilkan dropdown untuk memilih OPD --}}
+                            <select name="opd_id" id="opd_id" class="w-full rounded-md border-gray-300 shadow-sm" required>
                                 <option value="">-- Pilih OPD --</option>
                                 @foreach($opds as $opd)
                                 <option value="{{ $opd['id'] ?? '' }}"
-                                        {{ old('opd_id') == ($opd['id'] ?? '') ? 'selected' : '' }}>
+                                    {{-- Untuk form edit, pilih OPD yang sesuai --}}
+                                    @if(isset($jadwal) && $jadwal->opd_id == ($opd['id'] ?? '')) selected @endif>
                                     {{ $opd['name'] ?? $opd['nama'] ?? 'Unknown OPD' }}
                                 </option>
                                 @endforeach
                             </select>
-                            @error('opd_id')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            @else
+                            {{-- Jika user OPD, tampilkan nama OPD mereka sebagai teks biasa dan kirim IDnya secara tersembunyi --}}
+                            <div class="w-full p-2 bg-gray-100 border border-gray-300 rounded-md">
+                                {{ auth()->user()->opd_nama }}
+                            </div>
+                            @endif
                         </div>
 
                         <div>
@@ -77,11 +80,11 @@
                                 Sektoral
                             </label>
                             <select name="sektoral" id="sektoral"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">-- Pilih Sektoral --</option>
                                 @foreach($sektoralList as $sektoral)
                                 <option value="{{ $sektoral }}"
-                                        {{ old('sektoral') == $sektoral ? 'selected' : '' }}>
+                                    {{ old('sektoral') == $sektoral ? 'selected' : '' }}>
                                     {{ $sektoral }}
                                 </option>
                                 @endforeach
@@ -93,12 +96,12 @@
                                 Periode Waktu <span class="text-red-500">*</span>
                             </label>
                             <input type="text"
-                                   name="periode_waktu"
-                                   id="periode_waktu"
-                                   value="{{ old('periode_waktu') }}"
-                                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('periode_waktu') border-red-500 @enderror"
-                                   placeholder="Contoh: Triwulan I 2024, Tahun 2024, Januari 2024"
-                                   required>
+                                name="periode_waktu"
+                                id="periode_waktu"
+                                value="{{ old('periode_waktu') }}"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('periode_waktu') border-red-500 @enderror"
+                                placeholder="Contoh: Triwulan I 2024, Tahun 2024, Januari 2024"
+                                required>
                             @error('periode_waktu')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -109,57 +112,47 @@
                                 Jadwal Rilis <span class="text-red-500">*</span>
                             </label>
                             <input type="date"
-                                   name="jadwal_rilis"
-                                   id="jadwal_rilis"
-                                   value="{{ old('jadwal_rilis') }}"
-                                   min="{{ date('Y-m-d') }}"
-                                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('jadwal_rilis') border-red-500 @enderror"
-                                   required>
+                                name="jadwal_rilis"
+                                id="jadwal_rilis"
+                                value="{{ old('jadwal_rilis') }}"
+                                min="{{ date('Y-m-d') }}"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('jadwal_rilis') border-red-500 @enderror"
+                                required>
                             @error('jadwal_rilis')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
+                        {{-- Hanya tampilkan input status jika user adalah Admin --}}
+                        @if(auth()->user()->isAdmin())
                         <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
-                                Status <span class="text-red-500">*</span>
-                            </label>
-                            <select name="status" id="status"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('status') border-red-500 @enderror"
-                                    required>
-                                <option value="Belum Rilis" {{ old('status') == 'Belum Rilis' ? 'selected' : '' }}>
-                                    Belum Rilis
-                                </option>
-                                <option value="Sudah Rilis" {{ old('status') == 'Sudah Rilis' ? 'selected' : '' }}>
-                                    Sudah Rilis
-                                </option>
-                                <option value="Terlambat" {{ old('status') == 'Terlambat' ? 'selected' : '' }}>
-                                    Terlambat
-                                </option>
+                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status <span class="text-red-500">*</span></label>
+                            <select name="status" id="status" class="w-full rounded-md border-gray-300 shadow-sm" required>
+                                <option value="Belum Rilis" @if(isset($jadwal) && $jadwal->status == 'Belum Rilis') selected @endif>Belum Rilis</option>
+                                <option value="Sudah Rilis" @if(isset($jadwal) && $jadwal->status == 'Sudah Rilis') selected @endif>Sudah Rilis</option>
+                                <option value="Terlambat" @if(isset($jadwal) && $jadwal->status == 'Terlambat') selected @endif>Terlambat</option>
                             </select>
-                            @error('status')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
                         </div>
+                        @endif
 
                         <div>
                             <label for="catatan" class="block text-sm font-medium text-gray-700 mb-2">
                                 Catatan
                             </label>
                             <textarea name="catatan"
-                                      id="catatan"
-                                      rows="3"
-                                      class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                      placeholder="Catatan tambahan (opsional)">{{ old('catatan') }}</textarea>
+                                id="catatan"
+                                rows="3"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                placeholder="Catatan tambahan (opsional)">{{ old('catatan') }}</textarea>
                         </div>
 
                         <div class="flex justify-end space-x-3">
                             <a href="{{ route('admin.jadwal.index') }}"
-                               class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
                                 Batal
                             </a>
                             <button type="submit"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                 Simpan Jadwal
                             </button>
                         </div>

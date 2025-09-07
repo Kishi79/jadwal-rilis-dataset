@@ -56,23 +56,26 @@
 
                         <!-- OPD Dropdown -->
                         <div>
-                            <label for="opd_id" class="block text-sm font-medium text-gray-700 mb-2">
-                                OPD <span class="text-red-500">*</span>
-                            </label>
-                            <select name="opd_id" id="opd_id"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('opd_id') border-red-500 @enderror"
-                                required>
+                            <label for="opd_id" class="block text-sm font-medium text-gray-700 mb-2">OPD <span class="text-red-500">*</span></label>
+
+                            @if(auth()->user()->isAdmin())
+                            {{-- Jika Admin, tampilkan dropdown untuk memilih OPD --}}
+                            <select name="opd_id" id="opd_id" class="w-full rounded-md border-gray-300 shadow-sm" required>
                                 <option value="">-- Pilih OPD --</option>
                                 @foreach($opds as $opd)
                                 <option value="{{ $opd['id'] ?? '' }}"
-                                    {{ old('opd_id', $jadwal->opd_id) == ($opd['id'] ?? '') ? 'selected' : '' }}>
+                                    {{-- Untuk form edit, pilih OPD yang sesuai --}}
+                                    @if(isset($jadwal) && $jadwal->opd_id == ($opd['id'] ?? '')) selected @endif>
                                     {{ $opd['name'] ?? $opd['nama'] ?? 'Unknown OPD' }}
                                 </option>
                                 @endforeach
                             </select>
-                            @error('opd_id')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            @else
+                            {{-- Jika user OPD, tampilkan nama OPD mereka sebagai teks biasa dan kirim IDnya secara tersembunyi --}}
+                            <div class="w-full p-2 bg-gray-100 border border-gray-300 rounded-md">
+                                {{ auth()->user()->opd_nama }}
+                            </div>
+                            @endif
                         </div>
 
                         <!-- Sektoral -->
@@ -126,27 +129,17 @@
                         </div>
 
                         <!-- Status -->
+                        {{-- Hanya tampilkan input status jika user adalah Admin --}}
+                        @if(auth()->user()->isAdmin())
                         <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
-                                Status <span class="text-red-500">*</span>
-                            </label>
-                            <select name="status" id="status"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('status') border-red-500 @enderror"
-                                required>
-                                <option value="Belum Rilis" {{ old('status', $jadwal->status) == 'Belum Rilis' ? 'selected' : '' }}>
-                                    Belum Rilis
-                                </option>
-                                <option value="Sudah Rilis" {{ old('status', $jadwal->status) == 'Sudah Rilis' ? 'selected' : '' }}>
-                                    Sudah Rilis
-                                </option>
-                                <option value="Terlambat" {{ old('status', $jadwal->status) == 'Terlambat' ? 'selected' : '' }}>
-                                    Terlambat
-                                </option>
+                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status <span class="text-red-500">*</span></label>
+                            <select name="status" id="status" class="w-full rounded-md border-gray-300 shadow-sm" required>
+                                <option value="Belum Rilis" @if(isset($jadwal) && $jadwal->status == 'Belum Rilis') selected @endif>Belum Rilis</option>
+                                <option value="Sudah Rilis" @if(isset($jadwal) && $jadwal->status == 'Sudah Rilis') selected @endif>Sudah Rilis</option>
+                                <option value="Terlambat" @if(isset($jadwal) && $jadwal->status == 'Terlambat') selected @endif>Terlambat</option>
                             </select>
-                            @error('status')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
                         </div>
+                        @endif
 
                         <!-- Catatan -->
                         <div>
