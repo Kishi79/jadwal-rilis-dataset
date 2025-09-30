@@ -5,6 +5,42 @@
 @section('content')
 <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
+    <!--notiff-->
+
+            <div id="notification-container" class="mb-6 space-y-3">
+            @if(auth()->user()->isOpd() && !$notifikasiJadwal->isEmpty())
+                @foreach($notifikasiJadwal as $jadwal)
+                    @php
+                        $selisihHari = now()->startOfDay()->diffInDays($jadwal->jadwal_rilis->startOfDay(), false);
+                        $warna = 'yellow';
+                        $pesanHari = "dalam {$selisihHari} hari";
+
+                        if ($selisihHari <= 1) {
+                            $warna = 'red';
+                            $pesanHari = $jadwal->jadwal_rilis->isToday() ? "HARI INI" : "BESOK";
+                        }
+                    @endphp
+
+                    {{-- Banner Notifikasi --}}
+                    <div id="notif-{{ $jadwal->id }}" class="notification-item relative p-4 border-l-4 bg-{{$warna}}-100 border-{{$warna}}-500 text-{{$warna}}-700 rounded-b shadow-md" data-id="{{ $jadwal->id }}">
+                        <div class="flex">
+                            <div class="py-1">
+                                <svg class="w-6 h-6 text-{{$warna}}-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="font-bold">Peringatan Jadwal Rilis</p>
+                                <a href="{{ route('admin.jadwal.edit', $jadwal) }}" class="text-sm hover:underline">
+                                    Dataset "{{ Str::limit($jadwal->dataset_judul, 40) }}" akan jatuh tempo **{{ $pesanHari }}** ({{ $jadwal->jadwal_rilis->format('d/m/Y') }}).
+                                </a>
+                            </div>
+                        </div>
+                        <button class="dismiss-btn absolute top-2 right-2 text-{{$warna}}-500 hover:text-{{$warna}}-700">&times;</button>
+                    </div>
+                @endforeach
+            @endif
+        </div>
+        <!--end notiff-->
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900">
                 <div class="flex justify-between items-center mb-6">
@@ -132,3 +168,27 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Cari semua tombol 'x' untuk menutup notifikasi
+    const dismissButtons = document.querySelectorAll('.dismiss-btn');
+    
+    // Tambahkan event listener untuk setiap tombol
+    dismissButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            // Cari elemen banner notifikasi terdekat
+            const notificationItem = this.closest('.notification-item');
+
+            // Sembunyikan banner dengan efek fade out
+            notificationItem.style.transition = 'opacity 0.5s';
+            notificationItem.style.opacity = '0';
+            setTimeout(() => {
+                notificationItem.style.display = 'none';
+            }, 500);
+        });
+    });
+});
+</script>
+@endpush

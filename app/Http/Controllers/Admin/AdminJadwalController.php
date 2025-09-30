@@ -19,13 +19,26 @@ class AdminJadwalController extends Controller
         $this->apiService = $apiService;
     }
 
+    /**
+     * Menampilkan daftar jadwal, sudah termasuk logika untuk notifikasi.
+     */
     public function index()
     {
         $query = JadwalRilis::query();
         $user = auth()->user();
+        $notifikasiJadwal = []; // Inisialisasi variabel notifikasi
 
+        // Logika untuk memfilter data dan mengambil notifikasi berdasarkan role user
         if ($user->isOpd()) {
+            // Filter data utama untuk tabel
             $query->where('opd_id', $user->opd_id);
+
+            // Ambil data untuk notifikasi banner
+            $notifikasiJadwal = JadwalRilis::where('opd_id', $user->opd_id)
+                ->where('status', 'Belum Rilis')
+                ->whereBetween('jadwal_rilis', [now()->startOfDay(), now()->addDays(3)->endOfDay()])
+                ->orderBy('jadwal_rilis', 'asc')
+                ->get();
         }
 
         $jadwalRilis = $query->latest()->paginate(10);
@@ -34,9 +47,13 @@ class AdminJadwalController extends Controller
             $jadwal->updateStatusOtomatis();
         }
 
-        return view('admin.jadwal.index', compact('jadwalRilis'));
+        // Kirim data tabel dan data notifikasi ke view
+        return view('admin.jadwal.index', compact('jadwalRilis', 'notifikasiJadwal'));
     }
 
+    /**
+     * Menampilkan form untuk membuat jadwal baru.
+     */
     public function create()
     {
         $opds = $this->apiService->getOpds();
@@ -46,6 +63,9 @@ class AdminJadwalController extends Controller
         return view('admin.jadwal.create', compact('opds', 'sektoralList', 'existingDatasetTitles'));
     }
 
+    /**
+     * Menyimpan jadwal rilis baru dengan logika berdasarkan role.
+     */
     public function store(Request $request)
     {
         $user = auth()->user();
@@ -94,6 +114,9 @@ class AdminJadwalController extends Controller
         }
     }
 
+    /**
+     * Menampilkan form edit, dengan otorisasi.
+     */
     public function edit(JadwalRilis $jadwal)
     {
         $user = auth()->user();
@@ -108,6 +131,9 @@ class AdminJadwalController extends Controller
         return view('admin.jadwal.edit', compact('jadwal', 'opds', 'sektoralList', 'existingDatasetTitles'));
     }
 
+    /**
+     * Memperbarui jadwal rilis, dengan otorisasi dan logika role.
+     */
     public function update(Request $request, JadwalRilis $jadwal)
     {
         $user = auth()->user();
@@ -162,6 +188,9 @@ class AdminJadwalController extends Controller
         }
     }
 
+    /**
+     * Menghapus jadwal rilis, dengan otorisasi.
+     */
     public function destroy(JadwalRilis $jadwal)
     {
         $user = auth()->user();
@@ -178,6 +207,9 @@ class AdminJadwalController extends Controller
         }
     }
 
+    /**
+     * Helper untuk mengambil nama OPD dari API.
+     */
     private function getOpdInfo($opdId)
     {
         $opds = $this->apiService->getOpds();
