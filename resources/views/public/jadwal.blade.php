@@ -8,7 +8,7 @@
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900">
                 <h2 class="text-2xl font-bold mb-6">Jadwal Rilis Dataset Satu Data Garut</h2>
-                
+
                 <!-- Filter Section -->
                 <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                     <h3 class="text-lg font-semibold mb-3">Filter Data</h3>
@@ -19,9 +19,9 @@
                             <select id="filter-opd" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">Semua OPD</option>
                                 @foreach($opds as $opd)
-                                    <option value="{{ $opd['id'] ?? '' }}">
-                                        {{ $opd['name'] ?? $opd['nama'] ?? 'Unknown' }}
-                                    </option>
+                                <option value="{{ $opd['id'] ?? '' }}">
+                                    {{ $opd['name'] ?? $opd['nama'] ?? 'Unknown' }}
+                                </option>
                                 @endforeach
                             </select>
                         </div>
@@ -32,7 +32,7 @@
                             <select id="filter-sektoral" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">Semua Sektoral</option>
                                 @foreach($sektoralList as $sektoral)
-                                    <option value="{{ $sektoral }}">{{ $sektoral }}</option>
+                                <option value="{{ $sektoral }}">{{ $sektoral }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -54,7 +54,7 @@
                             <select id="filter-year" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">Semua Tahun</option>
                                 @foreach($years as $year)
-                                    <option value="{{ $year }}">{{ $year }}</option>
+                                <option value="{{ $year }}">{{ $year }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -79,7 +79,7 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="mt-4 flex gap-2">
                         <button id="btn-filter" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             Terapkan Filter
@@ -92,21 +92,22 @@
 
                 <!-- DataTable -->
                 <div class="overflow-x-auto">
-                    <table id="jadwal-table" class="min-w-full divide-y divide-gray-200">
+                    <table id="jadwal-table" class="min-w-full table-fixed divide-y divide-gray-200 text-sm">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul Dataset</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OPD</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sektoral</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode Waktu</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jadwal Rilis</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="w-12 px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">No</th>
+                                <th class="w-1/5 px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Judul Dataset</th>
+                                <th class="w-1/3 px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">OPD</th> <!-- Lebarkan -->
+                                <th class="w-1/6 px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Sektoral</th>
+                                <th class="w-1/6 px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Periode Waktu</th>
+                                <th class="w-1/6 px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Jadwal Rilis</th>
+                                <th class="w-1/6 px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                         </tbody>
                     </table>
+
                 </div>
             </div>
         </div>
@@ -116,70 +117,95 @@
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // Initialize DataTable
-    var table = $('#jadwal-table').DataTable({
-        processing: true,
-        serverSide: true,
-        responsive: true,
-        ajax: {
-            url: "{{ route('public.jadwal.data') }}",
-            data: function(d) {
-                d.opd_id = $('#filter-opd').val();
-                d.sektoral = $('#filter-sektoral').val();
-                d.status = $('#filter-status').val();
-                d.year = $('#filter-year').val();
-                d.month = $('#filter-month').val();
+    $(document).ready(function() {
+        // Initialize DataTable
+        var table = $('#jadwal-table').DataTable({
+            destroy: true, // 
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            ajax: {
+                url: "{{ route('public.jadwal.data') }}",
+                data: function(d) {
+                    d.opd_id = $('#filter-opd').val();
+                    d.sektoral = $('#filter-sektoral').val();
+                    d.status = $('#filter-status').val();
+                    d.year = $('#filter-year').val();
+                    d.month = $('#filter-month').val();
+                }
+            },
+            columns: [{
+                    data: 'no',
+                    name: 'no',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'dataset_judul',
+                    name: 'dataset_judul'
+                },
+                {
+                    data: 'opd_nama',
+                    name: 'opd_nama'
+                },
+                {
+                    data: 'sektoral',
+                    name: 'sektoral'
+                },
+                {
+                    data: 'periode_waktu',
+                    name: 'periode_waktu'
+                },
+                {
+                    data: 'jadwal_rilis',
+                    name: 'jadwal_rilis'
+                },
+                {
+                    data: 'status',
+                    name: 'status'
+                }
+            ],
+            order: [
+                [5, 'asc']
+            ],
+            language: {
+                processing: "Memproses...",
+                lengthMenu: "Tampilkan _MENU_ data per halaman",
+                zeroRecords: "Data tidak ditemukan",
+                info: "Menampilkan halaman _PAGE_ dari _PAGES_",
+                infoEmpty: "Tidak ada data tersedia",
+                infoFiltered: "(difilter dari _MAX_ total data)",
+                search: "Cari:",
+                paginate: {
+                    first: "Pertama",
+                    last: "Terakhir",
+                    next: "Selanjutnya",
+                    previous: "Sebelumnya"
+                }
             }
-        },
-        columns: [
-            { data: 'no', name: 'no', orderable: false, searchable: false },
-            { data: 'dataset_judul', name: 'dataset_judul' },
-            { data: 'opd_nama', name: 'opd_nama' },
-            { data: 'sektoral', name: 'sektoral' },
-            { data: 'periode_waktu', name: 'periode_waktu' },
-            { data: 'jadwal_rilis', name: 'jadwal_rilis' },
-            { data: 'status', name: 'status' }
-        ],
-        order: [[5, 'asc']],
-        language: {
-            processing: "Memproses...",
-            lengthMenu: "Tampilkan _MENU_ data per halaman",
-            zeroRecords: "Data tidak ditemukan",
-            info: "Menampilkan halaman _PAGE_ dari _PAGES_",
-            infoEmpty: "Tidak ada data tersedia",
-            infoFiltered: "(difilter dari _MAX_ total data)",
-            search: "Cari:",
-            paginate: {
-                first: "Pertama",
-                last: "Terakhir",
-                next: "Selanjutnya",
-                previous: "Sebelumnya"
-            }
-        }
-    });
+        });
 
-    // Apply filters
-    $('#btn-filter').click(function() {
-        table.draw();
-    });
-
-    // Reset filters
-    $('#btn-reset').click(function() {
-        $('#filter-opd').val('');
-        $('#filter-sektoral').val('');
-        $('#filter-status').val('');
-        $('#filter-year').val('');
-        $('#filter-month').val('');
-        table.draw();
-    });
-
-    // Apply filter on Enter key
-    $('.filter-input').keypress(function(e) {
-        if(e.which == 13) {
+        // Apply filters
+        $('#btn-filter').click(function() {
             table.draw();
-        }
+        });
+
+        // Reset filters
+        $('#btn-reset').click(function() {
+            $('#filter-opd').val('');
+            $('#filter-sektoral').val('');
+            $('#filter-status').val('');
+            $('#filter-year').val('');
+            $('#filter-month').val('');
+            table.draw();
+        });
+
+        // Apply filter on Enter key
+        $('.filter-input').keypress(function(e) {
+            if (e.which == 13) {
+                table.draw();
+            }
+        });
     });
-});
 </script>
 @endpush
