@@ -6,49 +6,51 @@
 <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-    <!--notiff-->
+        <!--notiff-->
 
-            <div id="notification-container" class="mb-6 space-y-3">
+        <div id="notification-container" class="mb-6 space-y-3">
             @if(auth()->user()->isOpd() && !$notifikasiJadwal->isEmpty())
-                @foreach($notifikasiJadwal as $jadwal)
-                    @php
-                        $selisihHari = now()->startOfDay()->diffInDays($jadwal->jadwal_rilis->startOfDay(), false);
-                        $warna = 'yellow';
-                        $pesanHari = "dalam {$selisihHari} hari";
+            @foreach($notifikasiJadwal as $jadwal)
+            @php
+            $selisihHari = now()->startOfDay()->diffInDays($jadwal->jadwal_rilis->startOfDay(), false);
+            $warna = 'yellow';
+            $pesanHari = "dalam {$selisihHari} hari";
 
-                        if ($selisihHari <= 1) {
-                            $warna = 'red';
-                            $pesanHari = $jadwal->jadwal_rilis->isToday() ? "HARI INI" : "BESOK";
-                        }
-                    @endphp
+            if ($selisihHari <= 1) {
+                $warna='red' ;
+                $pesanHari=$jadwal->jadwal_rilis->isToday() ? "HARI INI" : "BESOK";
+                }
+                @endphp
 
-                    {{-- Banner Notifikasi --}}
-                    <div id="notif-{{ $jadwal->id }}" class="notification-item relative p-4 border-l-4 bg-{{$warna}}-100 border-{{$warna}}-500 text-{{$warna}}-700 rounded-b shadow-md" data-id="{{ $jadwal->id }}">
-                        <div class="flex">
-                            <div class="py-1">
-                                <svg class="w-6 h-6 text-{{$warna}}-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            </div>
-                            <div>
-                                <p class="font-bold">Peringatan Jadwal Rilis</p>
-                                <a href="{{ route('admin.jadwal.edit', $jadwal) }}" class="text-sm hover:underline">
-                                    Dataset "{{ Str::limit($jadwal->dataset_judul, 40) }}" akan jatuh tempo **{{ $pesanHari }}** ({{ $jadwal->jadwal_rilis->format('d/m/Y') }}).
-                                </a>
-                            </div>
+                {{-- Banner Notifikasi --}}
+                <div id="notif-{{ $jadwal->id }}" class="notification-item relative p-4 border-l-4 bg-{{$warna}}-100 border-{{$warna}}-500 text-{{$warna}}-700 rounded-b shadow-md" data-id="{{ $jadwal->id }}">
+                    <div class="flex">
+                        <div class="py-1">
+                            <svg class="w-6 h-6 text-{{$warna}}-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
                         </div>
-                        <button class="dismiss-btn absolute top-2 right-2 text-{{$warna}}-500 hover:text-{{$warna}}-700">&times;</button>
+                        <div>
+                            <p class="font-bold">Peringatan Jadwal Rilis</p>
+                            <a href="{{ route('admin.jadwal.edit', $jadwal) }}" class="text-sm hover:underline">
+                                Dataset "{{ Str::limit($jadwal->dataset_judul, 40) }}" akan jatuh tempo **{{ $pesanHari }}** ({{ $jadwal->jadwal_rilis->format('d/m/Y') }}).
+                            </a>
+                        </div>
                     </div>
+                    <button class="dismiss-btn absolute top-2 right-2 text-{{$warna}}-500 hover:text-{{$warna}}-700">&times;</button>
+                </div>
                 @endforeach
-            @endif
+                @endif
         </div>
         <!--end notiff-->
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold">Manajemen Jadwal Rilis Dataset</h2>
-                    <a href="{{ route('admin.jadwal.create') }}" 
-                       class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                    <a href="{{ route('admin.jadwal.create') }}"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                         </svg>
                         Tambah Jadwal
                     </a>
@@ -110,38 +112,47 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($jadwal->status == 'Belum Rilis')
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                            Belum Rilis
-                                        </span>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Belum Rilis
+                                    </span>
                                     @elseif($jadwal->status == 'Sudah Rilis')
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Sudah Rilis
-                                        </span>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Sudah Rilis
+                                    </span>
                                     @else
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                            Terlambat
-                                        </span>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Terlambat
+                                    </span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">
-                                        <a href="{{ route('admin.jadwal.edit', $jadwal) }}" 
-                                           class="text-indigo-600 hover:text-indigo-900">
+                                        @if(auth()->user()->isAdmin())
+                                        <button onclick="sendReminder({{ $jadwal->id }})"
+                                            class="text-yellow-500 hover:text-yellow-700 mx-1"
+                                            title="Kirim Peringatan Rilis">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                            </svg>
+                                        </button>
+                                        @endif
+                                        <a href="{{ route('admin.jadwal.edit', $jadwal) }}"
+                                            class="text-indigo-600 hover:text-indigo-900">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
                                         </a>
-                                        <form action="{{ route('admin.jadwal.destroy', $jadwal) }}" 
-                                              method="POST" 
-                                              class="inline"
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?');">
+                                        <form action="{{ route('admin.jadwal.destroy', $jadwal) }}"
+                                            method="POST"
+                                            class="inline"
+                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:text-red-900">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
                                             </button>
                                         </form>
@@ -171,24 +182,48 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Cari semua tombol 'x' untuk menutup notifikasi
-    const dismissButtons = document.querySelectorAll('.dismiss-btn');
-    
-    // Tambahkan event listener untuk setiap tombol
-    dismissButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            // Cari elemen banner notifikasi terdekat
-            const notificationItem = this.closest('.notification-item');
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cari semua tombol 'x' untuk menutup notifikasi
+        const dismissButtons = document.querySelectorAll('.dismiss-btn');
 
-            // Sembunyikan banner dengan efek fade out
-            notificationItem.style.transition = 'opacity 0.5s';
-            notificationItem.style.opacity = '0';
-            setTimeout(() => {
-                notificationItem.style.display = 'none';
-            }, 500);
+        // Tambahkan event listener untuk setiap tombol
+        dismissButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Cari elemen banner notifikasi terdekat
+                const notificationItem = this.closest('.notification-item');
+
+                // Sembunyikan banner dengan efek fade out
+                notificationItem.style.transition = 'opacity 0.5s';
+                notificationItem.style.opacity = '0';
+                setTimeout(() => {
+                    notificationItem.style.display = 'none';
+                }, 500);
+            });
         });
     });
-});
+</script>
+<script>
+    function sendReminder(id) {
+        if (!confirm('Apakah Anda yakin ingin mengirim peringatan ke OPD terkait dataset ini?')) return;
+
+        // Tampilkan loading (opsional)
+
+        fetch(`/admin/jadwal/${id}/remind`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message); // Atau pakai SweetAlert jika ada
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
 </script>
 @endpush

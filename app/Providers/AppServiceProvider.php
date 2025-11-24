@@ -27,17 +27,15 @@ class AppServiceProvider extends ServiceProvider
             $allNotifications = collect();
             $unreadNotificationCount = 0;
 
-            if (Auth::check() && Auth::user()->isAdmin()) {
-                // Ambil 15 notifikasi TERBARU sebagai riwayat
+            // CUKUP CEK LOGIN SAJA (Hapus && Auth::user()->isAdmin())
+            if (Auth::check()) {
+                // Ambil notifikasi milik user yang sedang login (Admin ATAU OPD)
                 $allNotifications = Auth::user()->notifications()->take(15)->get();
-                
-                // Ambil HANYA JUMLAH notifikasi yang belum dibaca
                 $unreadNotificationCount = Auth::user()->unreadNotifications->count();
             }
 
-            // Kirim kedua variabel ini ke view
             $view->with('allNotifications', $allNotifications)
-                 ->with('unreadNotificationCount', $unreadNotificationCount);
+                ->with('unreadNotificationCount', $unreadNotificationCount);
         });
     }
 }

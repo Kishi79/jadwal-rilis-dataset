@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Notifications\JadwalBaruDibuatOlehOPD;
 use Illuminate\Support\Facades\Notification;
+use App\Notifications\PeringatanRilisDataset;
 
 class AdminJadwalController extends Controller
 {
@@ -76,7 +77,7 @@ class AdminJadwalController extends Controller
             'jadwal_rilis' => 'required|date|after_or_equal:today',
             'catatan' => 'nullable|string'
         ];
-        
+
         if ($user->isAdmin()) {
             $rules['opd_id'] = 'required|string';
             $rules['status'] = 'required|in:Belum Rilis,Sudah Rilis,Terlambat';
@@ -160,9 +161,9 @@ class AdminJadwalController extends Controller
             $rules['opd_id'] = 'required|string';
             $rules['status'] = 'required|in:Belum Rilis,Sudah Rilis,Terlambat';
         }
-        
+
         $request->validate($rules);
-        
+
         try {
             DB::beginTransaction();
 
@@ -211,6 +212,31 @@ class AdminJadwalController extends Controller
         } catch (\Exception $e) {
             Log::error('Error deleting jadwal: ' . $e->getMessage());
             return back()->with('error', 'Terjadi kesalahan saat menghapus jadwal.');
+        }
+    }
+    public function sendReminder($id)
+    {
+        try {
+            $jadwal = JadwalRilis::findOrFail($id);
+
+            // --- PERBAIKAN DISINI ---
+            // Jangan cari berdasarkan nama, tapi cari berdasarkan opd_id
+            // Kita mencari User yang kolom 'opd_id'-nya sama dengan 'opd_id' di jadwal
+            $opdUser = User::where('opd_id', $jadwal->opd_id)->first();
+
+            if (!$opdUser) {
+                // Debugging (Opsional): Cek di Log kenapa tidak ketemu
+                // \Illuminate\Support\Facades\Log::error("User tidak ketemu untuk OPD ID: " . $jadwal->opd_id);
+
+                return response()->json(['status' => 'error', 'message' => 'Akun User untuk OPD ini tidak ditemukan.'], 404);
+            }
+
+            // Kirim Notifikasi
+            $opdUser->notify(new PeringatanRilisDataset($jadwal));
+
+            return response()->json(['status' => 'success', 'message' => 'Peringatan berhasil dikirim ke OPD.']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Gagal mengirim peringatan: ' . $e->getMessage()], 500);
         }
     }
 

@@ -34,6 +34,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         return redirect()->route('admin.jadwal.index');
     })->name('dashboard');
+    Route::post('/admin/jadwal/{id}/remind', [AdminJadwalController::class, 'sendReminder'])
+        ->name('admin.jadwal.remind');
 
     // Admin jadwal management
     Route::prefix('admin')->name('admin.')->group(function () {
@@ -48,8 +50,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])
-         ->name('notifications.markAsRead');
+        ->name('notifications.markAsRead');
 });
 
 // Include Breeze authentication routes
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
