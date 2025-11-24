@@ -58,29 +58,102 @@
 
                 <!-- Statistics Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-blue-50 p-4 rounded-lg">
-                        <div class="text-blue-600 text-sm font-medium">Total Jadwal</div>
-                        <div class="text-2xl font-bold text-blue-900">{{ $jadwalRilis->total() }}</div>
-                    </div>
-                    <div class="bg-yellow-50 p-4 rounded-lg">
-                        <div class="text-yellow-600 text-sm font-medium">Belum Rilis</div>
-                        <div class="text-2xl font-bold text-yellow-900">
-                            {{ $jadwalRilis->where('status', 'Belum Rilis')->count() }}
+
+                    {{-- 1. TOTAL JADWAL (Reset Filter) --}}
+                    <a href="{{ route('admin.jadwal.index') }}"
+                        class="block transform transition duration-200 hover:scale-105 cursor-pointer">
+                        <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 shadow-sm hover:shadow-md {{ request('status') ? '' : 'ring-2 ring-blue-300' }}">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="text-blue-600 text-sm font-medium uppercase tracking-wider">Total Jadwal</div>
+                                    <div class="text-3xl font-bold text-blue-900 mt-1">{{ $totalJadwal }}</div>
+                                </div>
+                                <div class="p-2 bg-blue-200 rounded-full text-blue-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="bg-green-50 p-4 rounded-lg">
-                        <div class="text-green-600 text-sm font-medium">Sudah Rilis</div>
-                        <div class="text-2xl font-bold text-green-900">
-                            {{ $jadwalRilis->where('status', 'Sudah Rilis')->count() }}
+                    </a>
+
+                    {{-- 2. TERLAMBAT (Prioritas Tertinggi - Merah) --}}
+                    <a href="{{ route('admin.jadwal.index', ['status' => 'Terlambat']) }}"
+                        class="block transform transition duration-200 hover:scale-105 cursor-pointer">
+                        <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500 shadow-sm hover:shadow-md {{ request('status') == 'Terlambat' ? 'ring-2 ring-red-300 bg-red-100' : '' }}">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="text-red-600 text-sm font-medium uppercase tracking-wider">Terlambat</div>
+                                    <div class="text-3xl font-bold text-red-900 mt-1">{{ $countTerlambat }}</div>
+                                </div>
+                                <div class="p-2 bg-red-200 rounded-full text-red-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="bg-red-50 p-4 rounded-lg">
-                        <div class="text-red-600 text-sm font-medium">Terlambat</div>
-                        <div class="text-2xl font-bold text-red-900">
-                            {{ $jadwalRilis->where('status', 'Terlambat')->count() }}
+                    </a>
+
+                    {{-- 3. BELUM RILIS (Prioritas Menengah - Kuning) --}}
+                    <a href="{{ route('admin.jadwal.index', ['status' => 'Belum Rilis']) }}"
+                        class="block transform transition duration-200 hover:scale-105 cursor-pointer">
+                        <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500 shadow-sm hover:shadow-md {{ request('status') == 'Belum Rilis' ? 'ring-2 ring-yellow-300 bg-yellow-100' : '' }}">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="text-yellow-700 text-sm font-medium uppercase tracking-wider">Belum Rilis</div>
+                                    <div class="text-3xl font-bold text-yellow-900 mt-1">{{ $countBelumRilis }}</div>
+                                </div>
+                                <div class="p-2 bg-yellow-200 rounded-full text-yellow-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </a>
+
+                    {{-- 4. SUDAH RILIS (Aman - Hijau) --}}
+                    <a href="{{ route('admin.jadwal.index', ['status' => 'Sudah Rilis']) }}"
+                        class="block transform transition duration-200 hover:scale-105 cursor-pointer">
+                        <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-500 shadow-sm hover:shadow-md {{ request('status') == 'Sudah Rilis' ? 'ring-2 ring-green-300 bg-green-100' : '' }}">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="text-green-600 text-sm font-medium uppercase tracking-wider">Sudah Rilis</div>
+                                    <div class="text-3xl font-bold text-green-900 mt-1">{{ $countSudahRilis }}</div>
+                                </div>
+                                <div class="p-2 bg-green-200 rounded-full text-green-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+
                 </div>
+
+                {{-- Indikator Filter Aktif (Opsional, agar user sadar sedang memfilter) --}}
+                @if(request('status'))
+                <div class="mb-4 flex items-center justify-between bg-gray-50 p-3 rounded border border-gray-200">
+                    <span class="text-gray-600">
+                        Menampilkan jadwal dengan status:
+                        <span class="font-bold px-2 py-1 rounded 
+            {{ request('status') == 'Terlambat' ? 'bg-red-100 text-red-700' : '' }}
+            {{ request('status') == 'Belum Rilis' ? 'bg-yellow-100 text-yellow-800' : '' }}
+            {{ request('status') == 'Sudah Rilis' ? 'bg-green-100 text-green-700' : '' }}
+        ">
+                            {{ request('status') }}
+                        </span>
+                    </span>
+                    <a href="{{ route('admin.jadwal.index') }}" class="text-sm text-blue-600 hover:underline flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Reset Filter
+                    </a>
+                </div>
+                @endif
 
                 <!-- Table -->
                 <div class="overflow-x-auto">
@@ -172,7 +245,7 @@
 
                 <!-- Pagination -->
                 <div class="mt-4">
-                    {{ $jadwalRilis->links() }}
+                    {{ $jadwalRilis->appends(request()->query())->links() }}
                 </div>
             </div>
         </div>

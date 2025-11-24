@@ -26,15 +26,20 @@ class AdminJadwalController extends Controller
     /**
      * Menampilkan daftar jadwal.
      */
-    public function index()
+    // app/Http/Controllers/Admin/AdminJadwalController.php
+
+    public function index(Request $request)
     {
+        // 1. Base Query (Query Dasar)
         $query = JadwalRilis::query();
         $user = auth()->user();
         $notifikasiJadwal = [];
 
+        // Filter OPD jika user bukan admin
         if ($user->isOpd()) {
             $query->where('opd_id', $user->opd_id);
 
+            // Logic notifikasi (tetap sama)
             $notifikasiJadwal = JadwalRilis::where('opd_id', $user->opd_id)
                 ->where('status', 'Belum Rilis')
                 ->whereBetween('jadwal_rilis', [now()->startOfDay(), now()->addDays(3)->endOfDay()])
@@ -42,13 +47,39 @@ class AdminJadwalController extends Controller
                 ->get();
         }
 
+        // 2. HITUNG STATISTIK (FIX COUNT ISSUE)
+        // Kita clone query agar hitungan ini mengambil seluruh data di database
+        // tanpa terpengaruh pagination atau filter yang nanti akan kita buat
+        $statsQuery = clone $query;
+
+        $totalJadwal = $statsQuery->count();
+        $countTerlambat = (clone $statsQuery)->where('status', 'Terlambat')->count();
+        $countBelumRilis = (clone $statsQuery)->where('status', 'Belum Rilis')->count();
+        $countSudahRilis = (clone $statsQuery)->where('status', 'Sudah Rilis')->count();
+
+        // 3. LOGIKA FILTER (INTERAKTIVITAS KARTU)
+        // Jika ada parameter ?status=Terlambat di URL, maka filter tabelnya
+        if ($request->has('status') && $request->status != 'total') {
+            $query->where('status', $request->status);
+        }
+
+        // 4. Ambil data untuk tabel (Paginate)
         $jadwalRilis = $query->latest()->paginate(10);
 
+        // Update status otomatis (tetap sama)
         foreach ($jadwalRilis as $jadwal) {
             $jadwal->updateStatusOtomatis();
         }
 
-        return view('admin.jadwal.index', compact('jadwalRilis', 'notifikasiJadwal'));
+        // Kirim variabel statistik baru ke View
+        return view('admin.jadwal.index', compact(
+            'jadwalRilis',
+            'notifikasiJadwal',
+            'totalJadwal',
+            'countTerlambat',
+            'countBelumRilis',
+            'countSudahRilis'
+        ));
     }
 
     /**
